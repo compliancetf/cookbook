@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   public-route:
-    runs-on: runs-on=${{ github.run_id }}/runner=2cpu-linux-x64/env=antonbabenko
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Re-capture and compare
