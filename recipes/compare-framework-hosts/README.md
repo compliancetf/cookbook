@@ -81,7 +81,7 @@ applies nothing, then copies each module's root `.tf` files into
 - `pcidss` serves PCI DSS v4.0. PCI DSS v3.2.1 has its own host, `pcidssv321`.
 - A control the module does not check can still be in the framework. Some
   controls are met outside the module. The
-  [control catalog](https://compliance.tf/docs/controls/) maps each control to
+  [control catalog](https://compliance.tf/docs/controls/aws/) maps each control to
   framework clauses.
 
 ## Files
