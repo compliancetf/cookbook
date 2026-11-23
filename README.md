@@ -10,13 +10,8 @@ The same recipes live at [compliance.tf/docs/cookbook/](https://compliance.tf/do
 | --- | --- | --- |
 | [Set prevent_destroy on a bucket inside a module](recipes/prevent-destroy-in-module/) | Terraform rejects `lifecycle` on a module call and variables in `prevent_destroy` | No account |
 | [Read the diff before you change a module source](recipes/preview-module-changes/) | You want to review the HCL changes a rule makes to a pinned module version before you adopt it | No account |
-
-Recipes marked `held` stay here until their solution is captured. They are not published in the docs.
-
-| Recipe | Missing |
-| --- | --- |
-| [Require S3 access logging through the module source](recipes/s3-access-logging/) | Both authenticated plans |
-| [Compare what three framework hosts serve for one module](recipes/compare-framework-hosts/) | The three served modules |
+| [Require S3 access logging through the module source](recipes/s3-access-logging/) | A scanner flags a bucket without access logging, and the next caller of the module should not be able to skip it | No account to replay; a SOC 2 token and AWS credentials to run live |
+| [Compare what three framework hosts serve for one module](recipes/compare-framework-hosts/) | You need to know which checks a module gets from the SOC 2, HIPAA and PCI DSS hosts | No account to replay; a token for all three hosts to run live |
 
 ## Run a recipe
 

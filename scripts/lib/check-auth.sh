@@ -6,7 +6,8 @@
 #   check-auth.sh soc2.compliance.tf
 #
 # Token lookup order: $TF_REGISTRY_TOKEN, then the credentials file written by
-# `terraform login <host>`, then a ~/.netrc entry for the host.
+# `terraform login <host>`, then a ~/.netrc entry for the host. With none of
+# them it warns and defers to terraform's own credentials lookup.
 set -euo pipefail
 
 host=${1:?registry host, e.g. soc2.compliance.tf}
@@ -21,8 +22,10 @@ if [[ -z $token && -f $HOME/.netrc ]]; then
 fi
 
 if [[ -z $token ]]; then
-  echo "No token for $host. Run: terraform login $host   (see docs/auth-setup.md)" >&2
-  exit 1
+  # Terraform may still have one (a credentials block in the CLI config, a
+  # TF_TOKEN_* variable); terraform init reports it if not.
+  echo "$host: no token found here, leaving it to terraform (see docs/auth-setup.md)" >&2
+  exit 0
 fi
 
 body=$(curl -sS -H "Authorization: Bearer $token" "https://$host/whoami")
@@ -33,8 +36,10 @@ fi
 
 jq -r --arg h "$host" '"\($h): tier \(.tier), frameworks: \(.frameworks | join(", "))"' <<<"$body"
 
+# Host slugs drop the underscores of framework ids (soc2 serves soc_2, hipaa
+# serves hipaa_*, pcidss serves pci_dss_*).
 framework=${host%%.*}
-if [[ $framework != registry ]] && ! jq -e --arg f "$framework" '.frameworks | index($f)' >/dev/null <<<"$body"; then
+if [[ $framework != registry ]] && ! jq -e --arg f "$framework" 'any(.frameworks[]; gsub("_"; "") | startswith($f))' >/dev/null <<<"$body"; then
   echo "Your plan does not include $framework. The free plan serves CIS only; a trial covers every framework." >&2
   exit 1
 fi

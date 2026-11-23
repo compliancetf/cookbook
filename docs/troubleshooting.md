@@ -42,9 +42,10 @@ prints `Reserved block type name in module block` and `Variables not allowed`.
 The target tolerates validation failures, so read the errors instead of using
 its exit status as proof the configuration is valid.
 
-For `s3-access-logging`, set `TF_VAR_bucket_name` and `TF_VAR_log_bucket_name` before
-running the authenticated plans. The S3 module also reads AWS caller identity,
-so these plans need AWS credentials even though `terraform plan` does not apply
+For `s3-access-logging`, the variables have placeholder defaults, so the
+authenticated plans run as they are. Set `TF_VAR_*` values for your own buckets,
+key and role before an apply. The S3 module also reads AWS caller identity, so
+these plans need AWS credentials even though `terraform plan` does not apply
 infrastructure.
 
 If `make scan` is slow, Checkov may be downloading the public module. To read
@@ -56,11 +57,8 @@ cat recipes/s3-access-logging/expected/checkov-before.txt
 
 ## NOT_CAPTURED means the repository has no result yet
 
-`s3-access-logging` and `compare-framework-hosts` list missing artifacts under
-`expected/NOT_CAPTURED.md`.
-`make demo-compare-framework-hosts` prints those instructions until framework
-modules are captured.
-This is an evidence gap, not a successful comparison with an empty diff.
+A held recipe lists its missing artifacts in `expected/NOT_CAPTURED.md`. That
+is an evidence gap, not a successful run with an empty result.
 
 Run the recipe's `make fixtures` only when you want to write new files into
 `expected/`. `compare-framework-hosts`' `make live` also writes those files. Read the actual

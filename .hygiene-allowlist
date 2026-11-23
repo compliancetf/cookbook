@@ -1,3 +1,34 @@
 # Fixed strings that match a hygiene pattern but are safe to publish.
 users.noreply.github.com
 password ctf_YOUR_TOKEN_HERE
+# AWS documentation example account id, used for placeholders and scrubbed captures
+111122223333
+# ELB log-delivery account ids per region, from upstream terraform-aws-modules/s3-bucket (AWS-owned, public)
+"009996457667"
+"027434742980"
+"033677994240"
+"037604701340"
+"048591011584"
+"054676820928"
+"076674570225"
+"098369216593"
+"114774131450"
+"127311923021"
+"156460612806"
+"190560391635"
+"383597477331"
+"507241528517"
+"582318560864"
+"589379963580"
+"600734575887"
+"635631232127"
+"638102146993"
+"652711504416"
+"718504428378"
+"754344448648"
+"783225319266"
+"797873946194"
+"897822967062"
+"985666609251"
+# Upstream variable description in terraform-aws-modules/s3-bucket (matches the issue-id pattern)
+static web-site hosting or redirect configuration

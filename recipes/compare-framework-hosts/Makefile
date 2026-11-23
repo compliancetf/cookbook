@@ -1,11 +1,14 @@
-FRAMEWORKS := soc2 hipaa pcidssv321
+FRAMEWORKS := soc2 hipaa pcidss
 
-.PHONY: demo fixtures live
+.PHONY: demo controls diff fixtures live
 
-demo: ## Replay the three-way comparison, once captured
-	@if [ -d expected/served-soc2 ]; then \
-	   for fw in hipaa pcidssv321; do echo "== soc2 vs $$fw"; diff -ru expected/served-soc2 expected/served-$$fw || true; done; \
-	 else cat expected/NOT_CAPTURED.md; fi
+demo: controls diff ## The controls each host's module names, then the code diff
+
+controls: ## Control names in each served module, per host
+	@for fw in $(FRAMEWORKS); do echo "== $$fw"; grep -ho "Control '[a-z0-9_]*'" expected/served-$$fw/*.tf | sort -u; done
+
+diff: ## soc2 against hipaa and against pcidss
+	@for fw in hipaa pcidss; do echo "== soc2 vs $$fw"; diff -ru expected/served-soc2 expected/served-$$fw || true; done
 
 fixtures: ## Download each framework's served module into expected/. Needs a trial or paid token.
 	@for fw in $(FRAMEWORKS); do ../../scripts/lib/check-auth.sh $$fw.compliance.tf || exit 1; done

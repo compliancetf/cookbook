@@ -1,0 +1,62 @@
+module.s3_bucket.data.aws_partition.current: Reading...
+module.s3_bucket.data.aws_caller_identity.current: Reading...
+module.s3_bucket.data.aws_region.current: Reading...
+module.s3_bucket.data.aws_partition.current: Read complete after 0s [id=aws]
+module.s3_bucket.data.aws_region.current: Read complete after 0s [id=eu-west-1]
+module.s3_bucket.data.aws_caller_identity.current: Read complete after 0s [id=111122223333]
+
+Planning failed. Terraform encountered an error while generating this plan.
+
+
+Error: Resource precondition failed
+
+  on .terraform/modules/s3_bucket/main.tf line 61, in resource "aws_s3_bucket" "this":
+  61:       condition     = length(keys(var.replication_configuration)) > 0
+    ├────────────────
+    │ var.replication_configuration is object with no attributes
+
+Control 's3_bucket_cross_region_replication_enabled': S3 bucket replication
+rule must have status Enabled: aws_s3_bucket_replication_configuration.this
+is not created with these inputs
+Read more:
+https://compliance.tf/docs/controls/aws/s3_bucket_cross_region_replication_enabled/
+
+Error: Resource precondition failed
+
+  on .terraform/modules/s3_bucket/main.tf line 69, in resource "aws_s3_bucket" "this":
+  69:       condition     = length(keys(var.server_side_encryption_configuration)) > 0
+    ├────────────────
+    │ var.server_side_encryption_configuration is object with no attributes
+
+Control 's3_bucket_default_encryption_enabled_kms': S3 bucket encryption must
+use aws:kms or aws:kms:dsse:
+aws_s3_bucket_server_side_encryption_configuration.this is not created with
+these inputs
+Read more:
+https://compliance.tf/docs/controls/aws/s3_bucket_default_encryption_enabled_kms/
+
+Error: Resource precondition failed
+
+  on .terraform/modules/s3_bucket/main.tf line 77, in resource "aws_s3_bucket" "this":
+  77:       condition     = length(keys(var.logging)) > 0
+    ├────────────────
+    │ var.logging is object with no attributes
+
+Control 's3_bucket_logging_enabled': S3 bucket access logging is required:
+configure logging with a valid target bucket: aws_s3_bucket_logging.this is
+not created with these inputs
+Read more: https://compliance.tf/docs/controls/aws/s3_bucket_logging_enabled/
+
+Error: Resource precondition failed
+
+  on .terraform/modules/s3_bucket/main.tf line 109, in resource "aws_s3_bucket" "this":
+ 109:       condition     = length(try(jsondecode(var.lifecycle_rule), var.lifecycle_rule)) > 0
+    ├────────────────
+    │ var.lifecycle_rule is empty tuple
+
+Control 's3_bucket_versioning_and_lifecycle_policy_enabled': S3 bucket
+lifecycle rule must have status Enabled (requires versioning to be
+configured): aws_s3_bucket_lifecycle_configuration.this is not created with
+these inputs
+Read more:
+https://compliance.tf/docs/controls/aws/s3_bucket_versioning_and_lifecycle_policy_enabled/

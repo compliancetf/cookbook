@@ -9,7 +9,7 @@ authenticated compliance.tf host.
 | Any recipe: `make demo`, or a public preview call | None |
 | `s3-access-logging`: `make live`, `make fixtures` | Token with SOC 2 access; also AWS credentials for the plans |
 | `prevent-destroy-in-module`: initialize `with-rules/` | Token in `~/.netrc` for `registry.compliance.tf` |
-| `compare-framework-hosts`: capture framework modules | Token covering SOC 2, HIPAA and PCI DSS v3.2.1; no AWS apply |
+| `compare-framework-hosts`: capture framework modules | Token covering SOC 2, HIPAA and PCI DSS v4.0; no AWS credentials |
 
 Create a token at [app.compliance.tf/tokens/](https://app.compliance.tf/tokens/).
 Check its framework access before running a live target: the free plan serves
@@ -32,7 +32,7 @@ terraform login soc2.compliance.tf
 ```
 
 For `compare-framework-hosts`, repeat for `hipaa.compliance.tf` and
-`pcidssv321.compliance.tf`. Terraform credentials are host-specific.
+`pcidss.compliance.tf`. Terraform credentials are host-specific.
 
 A direct HTTPS source, used by `prevent-destroy-in-module/with-rules/`, looks like this:
 

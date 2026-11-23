@@ -1,7 +1,7 @@
 # Same module, same inputs as the other two framework directories.
 # Only the host in the source line differs.
 module "s3_bucket" {
-  source  = "pcidssv321.compliance.tf/terraform-aws-modules/s3-bucket/aws"
+  source  = "pcidss.compliance.tf/terraform-aws-modules/s3-bucket/aws"
   version = "5.15.4"
 
   bucket = var.bucket_name

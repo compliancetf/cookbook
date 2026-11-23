@@ -19,6 +19,8 @@ module's HCL when it serves the download.
 | --- | --- | --- |
 | [Set prevent_destroy on a bucket inside a module](prevent-destroy-in-module/) | Terraform rejects `lifecycle` on your module call, or a variable in `prevent_destroy` | No account |
 | [Read the diff before you change a module source](preview-module-changes/) | You want to review the HCL changes a rule makes to a pinned module version before you adopt it | No account |
+| [Require S3 access logging through the module source](s3-access-logging/) | A scanner flags a bucket without access logging, and the next caller of the module should not be able to skip it | No account to replay; a SOC 2 token and AWS credentials to run live |
+| [Compare what three framework hosts serve for one module](compare-framework-hosts/) | You need to know which checks a module gets from the SOC 2, HIPAA and PCI DSS hosts | No account to replay; a token for all three hosts to run live |
 
 ## Before you start
 

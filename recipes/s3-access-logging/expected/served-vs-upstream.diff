@@ -1,0 +1,525 @@
+Only in after-fixed/.terraform/modules/s3_bucket: compliancetf-manifest.json
+diff --color -ru -x '.*' -x '*.md' -x examples before/.terraform/modules/s3_bucket/main.tf after-fixed/.terraform/modules/s3_bucket/main.tf
+--- before/.terraform/modules/s3_bucket/main.tf	2026-11-23 21:50:32.512697626 +0100
++++ after-fixed/.terraform/modules/s3_bucket/main.tf	2026-11-23 21:50:51.578968227 +0100
+@@ -54,6 +54,73 @@
+   force_destroy       = var.force_destroy
+   object_lock_enabled = var.object_lock_enabled
+   tags                = var.tags
++
++  lifecycle {
++
++    precondition {
++      condition     = length(keys(var.replication_configuration)) > 0
++      error_message = <<EOF
++Control 's3_bucket_cross_region_replication_enabled': S3 bucket replication rule must have status Enabled: aws_s3_bucket_replication_configuration.this is not created with these inputs
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_cross_region_replication_enabled/
++EOF
++    }
++
++    precondition {
++      condition     = length(keys(var.server_side_encryption_configuration)) > 0
++      error_message = <<EOF
++Control 's3_bucket_default_encryption_enabled_kms': S3 bucket encryption must use aws:kms or aws:kms:dsse: aws_s3_bucket_server_side_encryption_configuration.this is not created with these inputs
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_default_encryption_enabled_kms/
++EOF
++    }
++
++    precondition {
++      condition     = length(keys(var.logging)) > 0
++      error_message = <<EOF
++Control 's3_bucket_logging_enabled': S3 bucket access logging is required: configure logging with a valid target bucket: aws_s3_bucket_logging.this is not created with these inputs
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_logging_enabled/
++EOF
++    }
++
++    precondition {
++      condition     = length(keys(var.versioning)) > 0
++      error_message = <<EOF
++Control 's3_bucket_mfa_delete_enabled': S3 bucket versioning MFA delete must be enabled: aws_s3_bucket_versioning.this is not created with these inputs
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_mfa_delete_enabled/
++EOF
++    }
++
++    precondition {
++      condition     = !(local.create_bucket && !var.is_directory_bucket) || try(var.object_lock_enabled == true, false)
++      error_message = <<EOF
++Control 's3_bucket_object_lock_enabled': S3 bucket object lock must be enabled
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_object_lock_enabled/
++EOF
++    }
++
++    postcondition {
++      condition     = self.object_lock_enabled == true
++      error_message = <<EOF
++Control 's3_bucket_object_lock_enabled': S3 bucket must have object lock enabled. Set object_lock_enabled to true.
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_object_lock_enabled/
++EOF
++    }
++
++    precondition {
++      condition     = length(try(jsondecode(var.lifecycle_rule), var.lifecycle_rule)) > 0
++      error_message = <<EOF
++Control 's3_bucket_versioning_and_lifecycle_policy_enabled': S3 bucket lifecycle rule must have status Enabled (requires versioning to be configured): aws_s3_bucket_lifecycle_configuration.this is not created with these inputs
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_versioning_and_lifecycle_policy_enabled/
++EOF
++    }
++
++    precondition {
++      condition     = var.attach_public_policy
++      error_message = <<EOF
++Control 's3_public_access_block_bucket': block_public_acls must be true: aws_s3_bucket_public_access_block.this is not created with these inputs
++Read more: https://compliance.tf/docs/controls/aws/s3_public_access_block_bucket/
++EOF
++    }
++  }
+ }
+ 
+ resource "aws_s3_directory_bucket" "this" {
+@@ -72,6 +139,25 @@
+   }
+ 
+   tags = var.tags
++
++  lifecycle {
++
++    precondition {
++      condition     = length(keys(var.server_side_encryption_configuration)) > 0
++      error_message = <<EOF
++Control 's3_bucket_default_encryption_enabled_kms': S3 bucket encryption must use aws:kms or aws:kms:dsse: aws_s3_bucket_server_side_encryption_configuration.this is not created with these inputs
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_default_encryption_enabled_kms/
++EOF
++    }
++
++    precondition {
++      condition     = length(try(jsondecode(var.lifecycle_rule), var.lifecycle_rule)) > 0
++      error_message = <<EOF
++Control 's3_bucket_versioning_and_lifecycle_policy_enabled': S3 bucket lifecycle rule must have status Enabled (requires versioning to be configured): aws_s3_bucket_lifecycle_configuration.this is not created with these inputs
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_versioning_and_lifecycle_policy_enabled/
++EOF
++    }
++  }
+ }
+ 
+ resource "aws_s3_bucket_logging" "this" {
+@@ -103,6 +189,25 @@
+       }
+     }
+   }
++
++  lifecycle {
++
++    precondition {
++      condition     = !(local.create_bucket && length(keys(var.logging)) > 0 && !var.is_directory_bucket) || try(try(var.logging["target_bucket"], null) != null && try(var.logging["target_bucket"], "") != "", false)
++      error_message = <<EOF
++Control 's3_bucket_logging_enabled': S3 bucket access logging is required: configure logging with a valid target bucket
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_logging_enabled/
++EOF
++    }
++
++    postcondition {
++      condition     = self.target_bucket != null && self.target_bucket != ""
++      error_message = <<EOF
++Control 's3_bucket_logging_enabled': S3 bucket must have access logging enabled with a valid target bucket.
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_logging_enabled/
++EOF
++    }
++  }
+ }
+ 
+ resource "aws_s3_bucket_acl" "this" {
+@@ -201,6 +306,17 @@
+       }
+     }
+   }
++
++  lifecycle {
++
++    postcondition {
++      condition     = try(self.index_document[0].suffix, null) == null
++      error_message = <<EOF
++Control 's3_bucket_static_website_hosting_disabled': S3 bucket must not have website hosting configured. Remove aws_s3_bucket_website_configuration resource or set website = {}.
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_static_website_hosting_disabled/
++EOF
++    }
++  }
+ }
+ 
+ resource "aws_s3_bucket_versioning" "this" {
+@@ -219,6 +335,41 @@
+     # Valid values: "Enabled" or "Disabled"
+     mfa_delete = try(tobool(var.versioning["mfa_delete"]) ? "Enabled" : "Disabled", title(lower(var.versioning["mfa_delete"])), null)
+   }
++
++  lifecycle {
++
++    precondition {
++      condition     = !(local.create_bucket && length(keys(var.versioning)) > 0 && !var.is_directory_bucket) || try(contains(["true", "enabled"], lower(tostring(try(tobool(var.versioning["mfa_delete"]) ? "Enabled" : "Disabled", title(lower(var.versioning["mfa_delete"])), null)))), false)
++      error_message = <<EOF
++Control 's3_bucket_mfa_delete_enabled': S3 bucket versioning MFA delete must be enabled
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_mfa_delete_enabled/
++EOF
++    }
++
++    postcondition {
++      condition     = one(self.versioning_configuration).mfa_delete == "Enabled"
++      error_message = <<EOF
++Control 's3_bucket_mfa_delete_enabled': S3 bucket versioning must have MFA delete enabled. Set versioning.mfa_delete to "Enabled".
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_mfa_delete_enabled/
++EOF
++    }
++
++    precondition {
++      condition     = !(local.create_bucket && length(keys(var.versioning)) > 0 && !var.is_directory_bucket) || try(try(var.versioning["enabled"] ? "Enabled" : "Suspended", tobool(var.versioning["status"]) ? "Enabled" : "Suspended", title(lower(var.versioning["status"])), "Enabled") == "Enabled", false)
++      error_message = <<EOF
++Control 's3_bucket_versioning_enabled': S3 bucket versioning must be enabled
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_versioning_enabled/
++EOF
++    }
++
++    postcondition {
++      condition     = contains(["Enabled"], one(self.versioning_configuration).status)
++      error_message = <<EOF
++Control 's3_bucket_versioning_enabled': S3 bucket versioning must be enabled. Set versioning_configuration.status to 'Enabled'.
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_versioning_enabled/
++EOF
++    }
++  }
+ }
+ 
+ resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
+@@ -246,6 +397,33 @@
+       blocked_encryption_types = try(rule.value.blocked_encryption_types, null)
+     }
+   }
++
++  lifecycle {
++
++    precondition {
++      condition     = !(local.create_bucket && length(keys(var.server_side_encryption_configuration)) > 0) || try(length(try(flatten([var.server_side_encryption_configuration["rule"]]), [])) > 0 && alltrue([for k, v in try(flatten([var.server_side_encryption_configuration["rule"]]), []) : length(try([v.apply_server_side_encryption_by_default], [])) > 0 && alltrue([for k1, v1 in try([v.apply_server_side_encryption_by_default], []) : try(length(try(v1.kms_master_key_id, null)) > 0, false)])]), false)
++      error_message = <<EOF
++Control 's3_bucket_default_encryption_enabled_kms': KMS encryption requires kms_master_key_id to be set
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_default_encryption_enabled_kms/
++EOF
++    }
++
++    precondition {
++      condition     = !(local.create_bucket && length(keys(var.server_side_encryption_configuration)) > 0) || try(length(try(flatten([var.server_side_encryption_configuration["rule"]]), [])) > 0 && alltrue([for k, v in try(flatten([var.server_side_encryption_configuration["rule"]]), []) : length(try([v.apply_server_side_encryption_by_default], [])) > 0 && alltrue([for k1, v1 in try([v.apply_server_side_encryption_by_default], []) : try(contains(["aws:kms", "aws:kms:dsse"], v1.sse_algorithm), false)])]), false)
++      error_message = <<EOF
++Control 's3_bucket_default_encryption_enabled_kms': S3 bucket encryption must use aws:kms or aws:kms:dsse
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_default_encryption_enabled_kms/
++EOF
++    }
++
++    postcondition {
++      condition     = contains(["aws:kms", "aws:kms:dsse"], one(self.rule).apply_server_side_encryption_by_default[0].sse_algorithm)
++      error_message = <<EOF
++Control 's3_bucket_default_encryption_enabled_kms': S3 bucket must use KMS encryption (aws:kms or aws:kms:dsse).
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_default_encryption_enabled_kms/
++EOF
++    }
++  }
+ }
+ 
+ resource "aws_s3_bucket_accelerate_configuration" "this" {
+@@ -414,6 +592,25 @@
+     # Must wait for replication configuration to propagate
+     aws_s3_bucket_replication_configuration.this
+   ]
++
++  lifecycle {
++
++    precondition {
++      condition     = !((local.create_bucket && length(local.lifecycle_rules) > 0) && (try(try(var.versioning["enabled"] ? "Enabled" : "Suspended", tobool(var.versioning["status"]) ? "Enabled" : "Suspended", title(lower(var.versioning["status"])), "Enabled") == "Enabled", false))) || try(length(try(jsondecode(var.lifecycle_rule), var.lifecycle_rule)) > 0 && anytrue([for k, v in try(jsondecode(var.lifecycle_rule), var.lifecycle_rule) : try(try(v.enabled ? "Enabled" : "Disabled", tobool(v.status) ? "Enabled" : "Disabled", title(lower(v.status))), null) == "Enabled"]), false)
++      error_message = <<EOF
++Control 's3_bucket_versioning_and_lifecycle_policy_enabled': S3 bucket lifecycle rule must have status Enabled (requires versioning to be configured)
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_versioning_and_lifecycle_policy_enabled/
++EOF
++    }
++
++    postcondition {
++      condition     = !(try(try(var.versioning["enabled"] ? "Enabled" : "Suspended", tobool(var.versioning["status"]) ? "Enabled" : "Suspended", title(lower(var.versioning["status"])), "Enabled") == "Enabled", false)) || (try(length(self.rule) > 0 && anytrue([for r in self.rule : r.status == "Enabled"]), false))
++      error_message = <<EOF
++Control 's3_bucket_versioning_and_lifecycle_policy_enabled': S3 bucket must have at least one lifecycle rule configured with status Enabled (requires versioning to be configured).
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_versioning_and_lifecycle_policy_enabled/
++EOF
++    }
++  }
+ }
+ 
+ resource "aws_s3_bucket_object_lock_configuration" "this" {
+@@ -599,6 +796,25 @@
+ 
+   # Must have bucket versioning enabled first
+   depends_on = [aws_s3_bucket_versioning.this]
++
++  lifecycle {
++
++    precondition {
++      condition     = !(local.create_bucket && length(keys(var.replication_configuration)) > 0 && !var.is_directory_bucket) || try(length(flatten(try([var.replication_configuration["rule"]], [var.replication_configuration["rules"]], []))) > 0 && anytrue([for v in flatten(try([var.replication_configuration["rule"]], [var.replication_configuration["rules"]], [])) : try(try(tobool(v.status) ? "Enabled" : "Disabled", title(lower(v.status)), "Enabled"), null) == "Enabled"]), false)
++      error_message = <<EOF
++Control 's3_bucket_cross_region_replication_enabled': S3 bucket replication rule must have status Enabled
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_cross_region_replication_enabled/
++EOF
++    }
++
++    postcondition {
++      condition     = try(length(self.rule) > 0 && anytrue([for r in self.rule : r.status == "Enabled"]), false)
++      error_message = <<EOF
++Control 's3_bucket_cross_region_replication_enabled': S3 bucket must have at least one replication rule configured with status Enabled
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_cross_region_replication_enabled/
++EOF
++    }
++  }
+ }
+ 
+ resource "aws_s3_bucket_policy" "this" {
+@@ -1173,6 +1389,17 @@
+   ignore_public_acls      = var.ignore_public_acls
+   restrict_public_buckets = var.restrict_public_buckets
+   skip_destroy            = var.skip_destroy_public_access_block
++
++  lifecycle {
++
++    postcondition {
++      condition     = self.block_public_acls && self.block_public_policy && self.ignore_public_acls && self.restrict_public_buckets
++      error_message = <<EOF
++Control 's3_public_access_block_bucket': All public access block settings must be enabled.
++Read more: https://compliance.tf/docs/controls/aws/s3_public_access_block_bucket/
++EOF
++    }
++  }
+ }
+ 
+ resource "aws_s3_bucket_ownership_controls" "this" {
+@@ -1192,6 +1419,17 @@
+     aws_s3_bucket_public_access_block.this,
+     aws_s3_bucket.this
+   ]
++
++  lifecycle {
++
++    postcondition {
++      condition     = one(self.rule).object_ownership == "BucketOwnerEnforced"
++      error_message = <<EOF
++Control 's3_bucket_not_accessible_to_all_authenticated_user': S3 bucket must use BucketOwnerEnforced ownership to prevent AuthenticatedUsers access.
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_not_accessible_to_all_authenticated_user/
++EOF
++    }
++  }
+ }
+ 
+ resource "aws_s3_bucket_intelligent_tiering_configuration" "this" {
+Only in after-fixed/.terraform/modules/s3_bucket/modules/account-public-access: compliancetf-manifest.json
+diff --color -ru -x '.*' -x '*.md' -x examples before/.terraform/modules/s3_bucket/modules/account-public-access/main.tf after-fixed/.terraform/modules/s3_bucket/modules/account-public-access/main.tf
+--- before/.terraform/modules/s3_bucket/modules/account-public-access/main.tf	2026-11-23 21:50:32.473890474 +0100
++++ after-fixed/.terraform/modules/s3_bucket/modules/account-public-access/main.tf	2026-11-23 21:50:51.593563482 +0100
+@@ -7,4 +7,47 @@
+   block_public_policy     = var.block_public_policy
+   ignore_public_acls      = var.ignore_public_acls
+   restrict_public_buckets = var.restrict_public_buckets
++
++  lifecycle {
++
++    precondition {
++      condition     = !var.create || try(var.block_public_acls == true, false)
++      error_message = <<EOF
++Control 's3_public_access_block_account': Account-level block_public_acls must be true
++Read more: https://compliance.tf/docs/controls/aws/s3_public_access_block_account/
++EOF
++    }
++
++    precondition {
++      condition     = !var.create || try(var.block_public_policy == true, false)
++      error_message = <<EOF
++Control 's3_public_access_block_account': Account-level block_public_policy must be true
++Read more: https://compliance.tf/docs/controls/aws/s3_public_access_block_account/
++EOF
++    }
++
++    precondition {
++      condition     = !var.create || try(var.ignore_public_acls == true, false)
++      error_message = <<EOF
++Control 's3_public_access_block_account': Account-level ignore_public_acls must be true
++Read more: https://compliance.tf/docs/controls/aws/s3_public_access_block_account/
++EOF
++    }
++
++    precondition {
++      condition     = !var.create || try(var.restrict_public_buckets == true, false)
++      error_message = <<EOF
++Control 's3_public_access_block_account': Account-level restrict_public_buckets must be true
++Read more: https://compliance.tf/docs/controls/aws/s3_public_access_block_account/
++EOF
++    }
++
++    postcondition {
++      condition     = self.block_public_acls && self.block_public_policy && self.ignore_public_acls && self.restrict_public_buckets
++      error_message = <<EOF
++Control 's3_public_access_block_account': All account-level public access block settings must be enabled.
++Read more: https://compliance.tf/docs/controls/aws/s3_public_access_block_account/
++EOF
++    }
++  }
+ }
+diff --color -ru -x '.*' -x '*.md' -x examples before/.terraform/modules/s3_bucket/modules/account-public-access/variables.tf after-fixed/.terraform/modules/s3_bucket/modules/account-public-access/variables.tf
+--- before/.terraform/modules/s3_bucket/modules/account-public-access/variables.tf	2026-11-23 21:50:32.513089962 +0100
++++ after-fixed/.terraform/modules/s3_bucket/modules/account-public-access/variables.tf	2026-11-23 21:50:51.593475232 +0100
+@@ -13,23 +13,23 @@
+ variable "block_public_acls" {
+   description = "Whether Amazon S3 should block public ACLs for buckets in this account."
+   type        = bool
+-  default     = false
++  default     = true
+ }
+ 
+ variable "block_public_policy" {
+   description = "Whether Amazon S3 should block public bucket policies for buckets in this account."
+   type        = bool
+-  default     = false
++  default     = true
+ }
+ 
+ variable "ignore_public_acls" {
+   description = "Whether Amazon S3 should ignore public ACLs for buckets in this account."
+   type        = bool
+-  default     = false
++  default     = true
+ }
+ 
+ variable "restrict_public_buckets" {
+   description = "Whether Amazon S3 should restrict public bucket policies for buckets in this account."
+   type        = bool
+-  default     = false
++  default     = true
+ }
+Only in after-fixed/.terraform/modules/s3_bucket/modules/notification: compliancetf-manifest.json
+diff --color -ru -x '.*' -x '*.md' -x examples before/.terraform/modules/s3_bucket/modules/notification/main.tf after-fixed/.terraform/modules/s3_bucket/modules/notification/main.tf
+--- before/.terraform/modules/s3_bucket/modules/notification/main.tf	2026-11-23 21:50:32.513517173 +0100
++++ after-fixed/.terraform/modules/s3_bucket/modules/notification/main.tf	2026-11-23 21:50:51.592361683 +0100
+@@ -58,6 +58,25 @@
+     aws_sqs_queue_policy.allow,
+     aws_sns_topic_policy.allow,
+   ]
++
++  lifecycle {
++
++    precondition {
++      condition     = !var.create || try(var.eventbridge == true, false)
++      error_message = <<EOF
++Control 's3_bucket_event_notifications_enabled': S3 bucket event notifications must be enabled (set eventbridge = true)
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_event_notifications_enabled/
++EOF
++    }
++
++    postcondition {
++      condition     = self.eventbridge == true || length(self.lambda_function) > 0 || length(self.queue) > 0 || length(self.topic) > 0
++      error_message = <<EOF
++Control 's3_bucket_event_notifications_enabled': S3 bucket must have event notifications configured (EventBridge, Lambda, SQS, or SNS).
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_event_notifications_enabled/
++EOF
++    }
++  }
+ }
+ 
+ # Lambda
+diff --color -ru -x '.*' -x '*.md' -x examples before/.terraform/modules/s3_bucket/modules/notification/variables.tf after-fixed/.terraform/modules/s3_bucket/modules/notification/variables.tf
+--- before/.terraform/modules/s3_bucket/modules/notification/variables.tf	2026-11-23 21:50:32.513797591 +0100
++++ after-fixed/.terraform/modules/s3_bucket/modules/notification/variables.tf	2026-11-23 21:50:51.592250558 +0100
+@@ -2,6 +2,14 @@
+   description = "Whether to create this resource or not?"
+   type        = bool
+   default     = true
++
++  validation {
++    condition     = var.create
++    error_message = <<EOF
++Control 's3_bucket_event_notifications_enabled': S3 bucket event notifications must be enabled (set eventbridge = true): aws_s3_bucket_notification.this is not created with these inputs
++Read more: https://compliance.tf/docs/controls/aws/s3_bucket_event_notifications_enabled/
++EOF
++  }
+ }
+ 
+ variable "create_sns_policy" {
+@@ -43,7 +51,7 @@
+ variable "eventbridge" {
+   description = "Whether to enable Amazon EventBridge notifications"
+   type        = bool
+-  default     = null
++  default     = true
+ }
+ 
+ variable "lambda_notifications" {
+Only in after-fixed/.terraform/modules/s3_bucket/modules/object: compliancetf-manifest.json
+Only in after-fixed/.terraform/modules/s3_bucket/modules/table-bucket: compliancetf-manifest.json
+Only in after-fixed/.terraform/modules/s3_bucket/modules/vectors: compliancetf-manifest.json
+diff --color -ru -x '.*' -x '*.md' -x examples before/.terraform/modules/s3_bucket/variables.tf after-fixed/.terraform/modules/s3_bucket/variables.tf
+--- before/.terraform/modules/s3_bucket/variables.tf	2026-11-23 21:50:32.515545185 +0100
++++ after-fixed/.terraform/modules/s3_bucket/variables.tf	2026-11-23 21:50:51.578366015 +0100
+@@ -175,7 +175,7 @@
+ variable "versioning" {
+   description = "Map containing versioning configuration."
+   type        = map(string)
+-  default     = {}
++  default     = { status = "Enabled" }
+ }
+ 
+ variable "logging" {
+@@ -319,7 +319,7 @@
+ variable "object_lock_enabled" {
+   description = "Whether S3 bucket should have an Object Lock configuration enabled."
+   type        = bool
+-  default     = false
++  default     = true
+ }
+ 
+ variable "block_public_acls" {
+diff --color -ru -x '.*' -x '*.md' -x examples before/.terraform/modules/s3_bucket/wrappers/account-public-access/main.tf after-fixed/.terraform/modules/s3_bucket/wrappers/account-public-access/main.tf
+--- before/.terraform/modules/s3_bucket/wrappers/account-public-access/main.tf	2026-11-23 21:50:32.477151243 +0100
++++ after-fixed/.terraform/modules/s3_bucket/wrappers/account-public-access/main.tf	2026-11-23 21:50:51.584972013 +0100
+@@ -4,9 +4,9 @@
+   for_each = var.items
+ 
+   account_id              = try(each.value.account_id, var.defaults.account_id, null)
+-  block_public_acls       = try(each.value.block_public_acls, var.defaults.block_public_acls, false)
+-  block_public_policy     = try(each.value.block_public_policy, var.defaults.block_public_policy, false)
++  block_public_acls       = try(each.value.block_public_acls, var.defaults.block_public_acls, true)
++  block_public_policy     = try(each.value.block_public_policy, var.defaults.block_public_policy, true)
+   create                  = try(each.value.create, var.defaults.create, true)
+-  ignore_public_acls      = try(each.value.ignore_public_acls, var.defaults.ignore_public_acls, false)
+-  restrict_public_buckets = try(each.value.restrict_public_buckets, var.defaults.restrict_public_buckets, false)
++  ignore_public_acls      = try(each.value.ignore_public_acls, var.defaults.ignore_public_acls, true)
++  restrict_public_buckets = try(each.value.restrict_public_buckets, var.defaults.restrict_public_buckets, true)
+ }
+diff --color -ru -x '.*' -x '*.md' -x examples before/.terraform/modules/s3_bucket/wrappers/main.tf after-fixed/.terraform/modules/s3_bucket/wrappers/main.tf
+--- before/.terraform/modules/s3_bucket/wrappers/main.tf	2026-11-23 21:50:32.515895937 +0100
++++ after-fixed/.terraform/modules/s3_bucket/wrappers/main.tf	2026-11-23 21:50:51.580553820 +0100
+@@ -59,7 +59,7 @@
+   metadata_journal_table_record_expiration_days   = try(each.value.metadata_journal_table_record_expiration_days, var.defaults.metadata_journal_table_record_expiration_days, null)
+   metric_configuration                            = try(each.value.metric_configuration, var.defaults.metric_configuration, [])
+   object_lock_configuration                       = try(each.value.object_lock_configuration, var.defaults.object_lock_configuration, {})
+-  object_lock_enabled                             = try(each.value.object_lock_enabled, var.defaults.object_lock_enabled, false)
++  object_lock_enabled                             = try(each.value.object_lock_enabled, var.defaults.object_lock_enabled, true)
+   object_ownership                                = try(each.value.object_ownership, var.defaults.object_ownership, "BucketOwnerEnforced")
+   owner                                           = try(each.value.owner, var.defaults.owner, {})
+   policy                                          = try(each.value.policy, var.defaults.policy, null)
+@@ -73,6 +73,6 @@
+   tags                                            = try(each.value.tags, var.defaults.tags, {})
+   transition_default_minimum_object_size          = try(each.value.transition_default_minimum_object_size, var.defaults.transition_default_minimum_object_size, null)
+   type                                            = try(each.value.type, var.defaults.type, "Directory")
+-  versioning                                      = try(each.value.versioning, var.defaults.versioning, {})
++  versioning                                      = try(each.value.versioning, var.defaults.versioning, { status = "Enabled" })
+   website                                         = try(each.value.website, var.defaults.website, {})
+ }
+diff --color -ru -x '.*' -x '*.md' -x examples before/.terraform/modules/s3_bucket/wrappers/notification/main.tf after-fixed/.terraform/modules/s3_bucket/wrappers/notification/main.tf
+--- before/.terraform/modules/s3_bucket/wrappers/notification/main.tf	2026-11-23 21:50:32.478046332 +0100
++++ after-fixed/.terraform/modules/s3_bucket/wrappers/notification/main.tf	2026-11-23 21:50:51.583930965 +0100
+@@ -9,7 +9,7 @@
+   create_lambda_permission = try(each.value.create_lambda_permission, var.defaults.create_lambda_permission, true)
+   create_sns_policy        = try(each.value.create_sns_policy, var.defaults.create_sns_policy, true)
+   create_sqs_policy        = try(each.value.create_sqs_policy, var.defaults.create_sqs_policy, true)
+-  eventbridge              = try(each.value.eventbridge, var.defaults.eventbridge, null)
++  eventbridge              = try(each.value.eventbridge, var.defaults.eventbridge, true)
+   lambda_notifications     = try(each.value.lambda_notifications, var.defaults.lambda_notifications, {})
+   region                   = try(each.value.region, var.defaults.region, null)
+   sns_notifications        = try(each.value.sns_notifications, var.defaults.sns_notifications, {})
