@@ -1,0 +1,8 @@
+{
+  "code": "PREVIEW_PARAM_NOT_ACCEPTED",
+  "error": "Preview does not accept: disable.",
+  "error_code": "PREVIEW_PARAM_NOT_ACCEPTED",
+  "http_status": 400,
+  "message": "Preview does not accept: disable.",
+  "remediation": "Preview applies operational rules to the base module only. Remove the parameter and use ?rules=."
+}

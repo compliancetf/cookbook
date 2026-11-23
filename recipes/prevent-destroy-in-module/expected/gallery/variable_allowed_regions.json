@@ -1,0 +1,55 @@
+{
+  "conflicts": [],
+  "danger": [],
+  "files": [],
+  "http_status": 200,
+  "module": {
+    "name": "s3-bucket",
+    "namespace": "terraform-aws-modules",
+    "provider": "aws",
+    "version": "5.15.4"
+  },
+  "outcomes": {
+    "variable_allowed_regions": {
+      "allows_unset": false,
+      "errors": [],
+      "outcome": "not_configured",
+      "unenforced_by_consent": false
+    }
+  },
+  "rules": {
+    "add_requested": [],
+    "baseline": null,
+    "requested": [
+      "variable_allowed_regions"
+    ],
+    "resolved": [
+      "variable_allowed_regions"
+    ],
+    "source": "query"
+  },
+  "schema": "1.0",
+  "summary": {
+    "blocked_by_conflict": false,
+    "danger_coverage": "complete",
+    "error": null,
+    "files_changed": 0,
+    "files_omitted": 0,
+    "files_scanned": 4,
+    "full_text_omitted": false,
+    "full_text_omitted_reason": null,
+    "resources_affected": 0,
+    "rules_applied": 0,
+    "rules_evaluated": 1,
+    "scope_coverage": "module_root_only",
+    "submodules_omitted": [
+      "modules/account-public-access",
+      "modules/notification",
+      "modules/object",
+      "modules/table-bucket",
+      "modules/vectors"
+    ],
+    "success": true,
+    "total_resources_found": 21
+  }
+}

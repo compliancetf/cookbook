@@ -1,0 +1,56 @@
+{
+  "conflicts": [],
+  "danger": [],
+  "files": [
+    {
+      "path": "main.tf",
+      "truncated": false,
+      "truncation": null,
+      "unified": "--- main.tf (original)\n+++ main.tf (after rules)\n@@ -329,10 +329,7 @@\n \n   lifecycle {\n     create_before_destroy = true\n-    ignore_changes = [\n-      load_balancers,\n-      target_group_arns,\n-    ]\n+    ignore_changes = [load_balancers, target_group_arns, desired_capacity]\n   }\n }\n "
+    }
+  ],
+  "http_status": 200,
+  "module": {
+    "name": "autoscaling",
+    "namespace": "terraform-aws-modules",
+    "provider": "aws",
+    "version": "9.2.1"
+  },
+  "outcomes": {
+    "lifecycle_ignore_scaling_changes": {
+      "allows_unset": false,
+      "errors": [],
+      "outcome": "enforced",
+      "unenforced_by_consent": false
+    }
+  },
+  "rules": {
+    "add_requested": [],
+    "baseline": null,
+    "requested": [
+      "lifecycle_ignore_scaling_changes"
+    ],
+    "resolved": [
+      "lifecycle_ignore_scaling_changes"
+    ],
+    "source": "query"
+  },
+  "schema": "1.0",
+  "summary": {
+    "blocked_by_conflict": false,
+    "danger_coverage": "complete",
+    "error": null,
+    "files_changed": 1,
+    "files_omitted": 0,
+    "files_scanned": 4,
+    "full_text_omitted": false,
+    "full_text_omitted_reason": null,
+    "resources_affected": 1,
+    "rules_applied": 1,
+    "rules_evaluated": 1,
+    "scope_coverage": "complete",
+    "submodules_omitted": [],
+    "success": true,
+    "total_resources_found": 9
+  }
+}

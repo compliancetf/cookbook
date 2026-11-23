@@ -1,0 +1,15 @@
+# terraform validate, Terraform 1.16.3, captured 2026-10-07
+
+Error: Variables not allowed
+
+  on main.tf line 11, in resource "terraform_data" "bucket":
+  11:     prevent_destroy = var.prevent_destroy
+
+Variables may not be used here.
+
+Error: Unsuitable value type
+
+  on main.tf line 11, in resource "terraform_data" "bucket":
+  11:     prevent_destroy = var.prevent_destroy
+
+Unsuitable value: value must be known

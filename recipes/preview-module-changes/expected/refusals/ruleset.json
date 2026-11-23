@@ -1,0 +1,8 @@
+{
+  "code": "PREVIEW_TIER_REQUIRED",
+  "error": "Not available on the public preview route: ruleset.",
+  "error_code": "PREVIEW_TIER_REQUIRED",
+  "http_status": 403,
+  "message": "Not available on the public preview route: ruleset.",
+  "remediation": "Rule parameters and rulesets are available on the authenticated preview route."
+}

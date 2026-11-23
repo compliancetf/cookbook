@@ -1,0 +1,10 @@
+# Scoped to the one finding this recipe is about: S3 access logging.
+check:
+  - CKV_AWS_18
+compact: true
+directory:
+  - before
+download-external-modules: true
+external-modules-download-path: .external_modules
+framework:
+  - terraform

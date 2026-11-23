@@ -1,0 +1,8 @@
+{
+  "code": "RULE_SYNTAX",
+  "error": "rules is required on the public preview route.",
+  "error_code": "RULE_SYNTAX",
+  "http_status": 400,
+  "message": "rules is required on the public preview route.",
+  "remediation": "Name at least one builtin rule id, e.g. ?rules=lifecycle_prevent_destroy_data"
+}

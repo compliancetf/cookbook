@@ -1,0 +1,68 @@
+{
+  "conflicts": [],
+  "danger": [
+    {
+      "level": "caution",
+      "rule": "provisioner_remove_blocks",
+      "transformers": [
+        "block_removal"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "package.tf",
+      "truncated": false,
+      "truncation": null,
+      "unified": "--- package.tf (original)\n+++ package.tf (after rules)\n@@ -59,14 +59,5 @@\n     timestamp = var.trigger_on_package_timestamp ? data.external.archive_prepare[0].result.timestamp : null\n   }\n \n-  provisioner \"local-exec\" {\n-    interpreter = [\n-      local.python, \"${path.module}/package.py\", \"build\",\n-      \"--timestamp\", data.external.archive_prepare[0].result.timestamp\n-    ]\n-    command = data.external.archive_prepare[0].result.build_plan_filename\n-    quiet   = var.quiet_archive_local_exec\n-  }\n-\n   depends_on = [local_file.archive_plan]\n }"
+    }
+  ],
+  "http_status": 200,
+  "module": {
+    "name": "lambda",
+    "namespace": "terraform-aws-modules",
+    "provider": "aws",
+    "version": "8.8.1"
+  },
+  "outcomes": {
+    "provisioner_remove_blocks": {
+      "allows_unset": false,
+      "errors": [],
+      "outcome": "enforced",
+      "unenforced_by_consent": false
+    }
+  },
+  "rules": {
+    "add_requested": [],
+    "baseline": null,
+    "requested": [
+      "provisioner_remove_blocks"
+    ],
+    "resolved": [
+      "provisioner_remove_blocks"
+    ],
+    "source": "query"
+  },
+  "schema": "1.0",
+  "summary": {
+    "blocked_by_conflict": false,
+    "danger_coverage": "complete",
+    "error": null,
+    "files_changed": 1,
+    "files_omitted": 0,
+    "files_scanned": 6,
+    "full_text_omitted": false,
+    "full_text_omitted_reason": null,
+    "resources_affected": 1,
+    "rules_applied": 1,
+    "rules_evaluated": 1,
+    "scope_coverage": "module_root_only",
+    "submodules_omitted": [
+      "modules/alias",
+      "modules/deploy",
+      "modules/docker-build"
+    ],
+    "success": true,
+    "total_resources_found": 27
+  }
+}

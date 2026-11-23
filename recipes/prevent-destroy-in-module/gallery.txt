@@ -1,0 +1,8 @@
+# rule                              module          pinned version
+lifecycle_prevent_destroy_data      s3-bucket       5.15.4
+lifecycle_ignore_tags               s3-bucket       5.15.4
+lifecycle_ignore_scaling_changes    autoscaling     9.2.1
+provisioner_remove_blocks           lambda          8.8.1
+# Kept on purpose: a rule that needs parameters answers "not_configured" on the
+# public route. Parameters are an authenticated-route feature.
+variable_allowed_regions            s3-bucket       5.15.4

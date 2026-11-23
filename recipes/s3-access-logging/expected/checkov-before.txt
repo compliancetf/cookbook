@@ -1,0 +1,18 @@
+# checkov 3.3.20 on before/, captured 2026-09-28
+
+       _               _
+   ___| |__   ___  ___| | _______   __
+  / __| '_ \ / _ \/ __| |/ / _ \ \ / /
+ | (__| | | |  __/ (__|   < (_) \ V /
+  \___|_| |_|\___|\___|_|\_\___/ \_/
+
+By Prisma Cloud | version: 3.3.20 
+
+terraform scan results:
+
+Passed checks: 0, Failed checks: 1, Skipped checks: 0
+
+Check: CKV_AWS_18: "Ensure the S3 bucket has access logging enabled"
+	FAILED for resource: module.s3_bucket.aws_s3_bucket.this[0]
+	File: .external_modules/github.com/terraform-aws-modules/terraform-aws-s3-bucket/dd0c434de5e74d8864e249ee020d917b076b6e32/main.tf:45-57
+	Guide: https://docs.prismacloud.io/en/enterprise-edition/policy-reference/aws-policies/s3-policies/s3-13-enable-logging

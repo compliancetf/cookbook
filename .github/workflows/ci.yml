@@ -1,0 +1,52 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: runs-on=${{ github.run_id }}/runner=2cpu-linux-x64/env=antonbabenko
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.14.4
+          terraform_wrapper: false
+
+      - name: Hygiene (account ids, emails, credentials)
+        run: scripts/hygiene.sh
+
+      - name: Recipe contract (frontmatter, status, captures)
+        run: scripts/check-recipes.sh
+
+      - name: terraform fmt
+        run: terraform fmt -check -recursive recipes
+
+      - name: shellcheck
+        run: shellcheck scripts/*.sh scripts/lib/*.sh recipes/*/capture.sh
+
+      - name: Validate public-source directories
+        working-directory: recipes/s3-access-logging/before
+        run: terraform init -backend=false -input=false && terraform validate
+
+      - name: prevent_destroy problems still fail the way the README says
+        run: |
+          check() {
+            dir=$1 want=$2
+            (cd "recipes/prevent-destroy-in-module/problem/$dir" && terraform init -backend=false -input=false >/dev/null 2>&1) || true
+            if out=$(cd "recipes/prevent-destroy-in-module/problem/$dir" && terraform validate -no-color 2>&1); then
+              echo "$dir: validate passed, expected: $want"; exit 1
+            fi
+            grep -qF "$want" <<<"$out" || { echo "$dir: missing '$want' in:"; echo "$out"; exit 1; }
+            echo "$dir: fails with '$want'"
+          }
+          check module-lifecycle "Reserved block type name in module block"
+          check variable-lifecycle "Variables not allowed"
+
+      - name: Replay targets run
+        run: make demo-preview-module-changes && make -C recipes/preview-module-changes refusals && make demo-prevent-destroy-in-module && make demo-compare-framework-hosts

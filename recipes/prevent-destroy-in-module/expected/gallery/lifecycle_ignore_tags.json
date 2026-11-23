@@ -1,0 +1,62 @@
+{
+  "conflicts": [],
+  "danger": [],
+  "files": [
+    {
+      "path": "main.tf",
+      "truncated": false,
+      "truncation": null,
+      "unified": "--- main.tf (original)\n+++ main.tf (after rules)\n@@ -54,6 +54,10 @@\n   force_destroy       = var.force_destroy\n   object_lock_enabled = var.object_lock_enabled\n   tags                = var.tags\n+\n+  lifecycle {\n+    ignore_changes = [tags, tags_all]\n+  }\n }\n \n resource \"aws_s3_directory_bucket\" \"this\" {\n@@ -72,6 +76,10 @@\n   }\n \n   tags = var.tags\n+\n+  lifecycle {\n+    ignore_changes = [tags]\n+  }\n }\n \n resource \"aws_s3_bucket_logging\" \"this\" {"
+    }
+  ],
+  "http_status": 200,
+  "module": {
+    "name": "s3-bucket",
+    "namespace": "terraform-aws-modules",
+    "provider": "aws",
+    "version": "5.15.4"
+  },
+  "outcomes": {
+    "lifecycle_ignore_tags": {
+      "allows_unset": false,
+      "errors": [],
+      "outcome": "enforced",
+      "unenforced_by_consent": false
+    }
+  },
+  "rules": {
+    "add_requested": [],
+    "baseline": null,
+    "requested": [
+      "lifecycle_ignore_tags"
+    ],
+    "resolved": [
+      "lifecycle_ignore_tags"
+    ],
+    "source": "query"
+  },
+  "schema": "1.0",
+  "summary": {
+    "blocked_by_conflict": false,
+    "danger_coverage": "complete",
+    "error": null,
+    "files_changed": 1,
+    "files_omitted": 0,
+    "files_scanned": 4,
+    "full_text_omitted": false,
+    "full_text_omitted_reason": null,
+    "resources_affected": 2,
+    "rules_applied": 1,
+    "rules_evaluated": 1,
+    "scope_coverage": "module_root_only",
+    "submodules_omitted": [
+      "modules/account-public-access",
+      "modules/notification",
+      "modules/object",
+      "modules/table-bucket",
+      "modules/vectors"
+    ],
+    "success": true,
+    "total_resources_found": 21
+  }
+}

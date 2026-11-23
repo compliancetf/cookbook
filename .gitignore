@@ -1,0 +1,22 @@
+# Terraform
+**/.terraform/*
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+*_plan.json
+crash.log
+*.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Credentials: never commit these
+.netrc
+.terraformrc
+terraform.rc
+*.tfrc.json
+
+# checkov module cache
+.external_modules/

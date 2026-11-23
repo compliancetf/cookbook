@@ -1,0 +1,3 @@
+# Fixed strings that match a hygiene pattern but are safe to publish.
+users.noreply.github.com
+password ctf_YOUR_TOKEN_HERE

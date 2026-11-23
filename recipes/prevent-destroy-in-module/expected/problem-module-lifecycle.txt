@@ -1,0 +1,9 @@
+# terraform validate, Terraform 1.16.3, captured 2026-10-07
+
+Error: Reserved block type name in module block
+
+  on main.tf line 9, in module "s3_bucket":
+   9:   lifecycle {
+
+The block type name "lifecycle" is reserved for use by Terraform in a future
+version.

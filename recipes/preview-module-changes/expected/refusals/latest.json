@@ -1,0 +1,8 @@
+{
+  "code": "PREVIEW_VERSION_NOT_PINNED",
+  "error": "latest is not the pinned preview version for this module.",
+  "error_code": "PREVIEW_VERSION_NOT_PINNED",
+  "http_status": 400,
+  "message": "latest is not the pinned preview version for this module.",
+  "remediation": "The public route serves only the pinned version of an allowlisted module; `latest` is not resolved here."
+}

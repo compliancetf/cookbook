@@ -1,0 +1,17 @@
+repos:
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.100.0
+    hooks:
+      - id: terraform_fmt
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+  - repo: local
+    hooks:
+      - id: hygiene
+        name: hygiene (account ids, emails, credentials)
+        entry: scripts/hygiene.sh
+        language: script
+        pass_filenames: false
